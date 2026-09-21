@@ -1,0 +1,57 @@
+# Build output
+build/
+bin/
+out/
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle
+.gradle/
+gradle-app.setting
+.gradletasknamecache
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+*.launch
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Runtime / local data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+/plugins/
+/server/
+/run/
+
+# Secrets and local config
+*.env
+.env
+secrets.properties
+local.properties
+# Рантайм-конфиг реального сервера с боевыми токенами — только шаблон в src/main/resources
+/config.yml
+/config.yml.*.bak
+
+# Internal tooling and audit artefacts — not for publication
+SECURITY-REVIEW.md
+tools/

@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '9.2.2'
+}
+
+group = 'mc.t1rei.wauth'
+version = '0.0.4'
+description = 'WAUTH - registration and login.'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url = 'https://repo.purpurmc.org/snapshots' }
+}
+
+dependencies {
+    compileOnly 'org.purpurmc.purpur:purpur-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'org.apache.logging.log4j:log4j-core:2.24.1'
+    compileOnly 'io.netty:netty-codec-http:4.1.115.Final'
+    compileOnly 'io.netty:netty-handler:4.1.115.Final'
+    implementation 'at.favre.lib:bcrypt:0.10.2'
+    implementation 'org.xerial:sqlite-jdbc:3.47.1.0'
+
+    testImplementation 'org.purpurmc.purpur:purpur-api:1.21.11-R0.1-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.register('verifyLocalUpgrade', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'mc.t1rei.wauth.LocalUpgradeCheck'
+    doFirst {
+        args providers.gradleProperty('legacyDataDir').get(), providers.gradleProperty('serverConfig').get()
+    }
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+shadowJar {
+    archiveClassifier = ''
+    relocate 'at.favre.lib', 'mc.t1rei.wauth.libs.favre'
+    mergeServiceFiles()
+}
+
+tasks.named('build') {
+    dependsOn tasks.named('shadowJar')
+}

@@ -1,0 +1,69 @@
+name: WAUTH
+main: mc.t1rei.wauth.WAuth
+version: '${version}'
+author: T1REI
+description: WAUTH - registration and login.
+api-version: '1.21'
+load: STARTUP
+folia-supported: false
+
+commands:
+  register:
+    description: Регистрация нового аккаунта.
+    usage: /register <пароль> <подтверждение пароля>
+    aliases: [reg]
+  login:
+    description: Вход в аккаунт.
+    usage: /login <пароль>
+    aliases: [l]
+  changepass:
+    description: Смена собственного пароля.
+    usage: /changepass <текущий пароль> <новый пароль>
+    permission: wauth.changepass
+  forcechangepass:
+    description: Принудительная смена пароля игрока.
+    usage: /forcechangepass <ник> <новый пароль>
+    permission: wauth.forcechangepass
+  forceresetpass:
+    description: Сброс пароля и сессии игрока.
+    usage: /forceresetpass <ник>
+    permission: wauth.forceresetpass
+  wauth:
+    description: Служебные команды WAUTH.
+    usage: /wauth <confirm|reload>
+    aliases: [wa]
+  2fa:
+    description: Двухфакторная аутентификация.
+    usage: /2fa <link|status|enable|disable|unlink|code>
+    permission: wauth.2fa.use
+
+permissions:
+  wauth.changepass:
+    description: Позволяет менять свой пароль.
+    default: true
+  wauth.forcechangepass:
+    description: Позволяет менять пароль другим игрокам.
+    default: op
+  wauth.forceresetpass:
+    description: Позволяет сбрасывать пароль другим игрокам.
+    default: op
+  wauth.reload:
+    description: Позволяет перезагружать конфигурацию.
+    default: op
+  wauth.2fa.use:
+    description: Позволяет пользоваться двухфакторной аутентификацией.
+    default: true
+  wauth.2fa.required:
+    description: Обязательная привязка 2FA для входа.
+    default: false
+  wauth.2fa.admin:
+    description: Администрирование 2FA.
+    default: op
+  wauth.admin:
+    description: Полный доступ к администрированию WAUTH.
+    default: op
+    children:
+      wauth.forcechangepass: true
+      wauth.forceresetpass: true
+      wauth.reload: true
+      wauth.2fa.admin: true

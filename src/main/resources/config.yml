@@ -1,0 +1,329 @@
+# ============================================================
+#  WAUTH — регистрация и авторизация
+#  Цвета: &a, &#F0FFAB, &x&F&0&F&F&A&B
+#  Время: "45s" / "45", "500ms", "2m", "1h"
+# ============================================================
+
+security:
+  # Вырезать из консоли строки с командами, содержащими пароль.
+  hide-passwords-in-console: true
+  # Limits survive reconnects, but reset at server restart. Settings require a full restart.
+  rate-limit:
+    window: 300s
+    account-attempts: 10
+    ip-attempts: 40
+    registrations-per-ip: 5
+  workers:
+    threads: 2
+    queue-capacity: 32
+
+storage:
+  migration:
+    # Remove imported .db files only after a verified backup and successful SQLite import.
+    remove-legacy-files: true
+  # Current data is stored in data/auth.sqlite. Legacy files are backed up before import.
+  # Keep sqlite.migrated: it prevents restoring stale legacy data if auth.sqlite disappears.
+  # Changing encryption rewrites both tables at startup and requires the original key.
+  # Шифровать локальную базу аккаунтов (AES-256/GCM).
+  # Ключ хранится в plugins/WAUTH/data/store.key — не удаляйте его.
+  encrypt: true
+  # Стоимость bcrypt. 10-12 — разумный баланс скорости и надёжности.
+  bcrypt-cost: 12
+  # Интервал записи метаданных входа. Пароли и изменения 2FA сохраняются сразу.
+  save-interval: 60s
+
+auth:
+  # Сколько даётся на вход/регистрацию.
+  timeout: 45s
+  # Количество попыток ввода пароля. 0 — без ограничений.
+  max-attempts: 3
+  # Как часто напоминать в чате.
+  reminder-interval: 10s
+  # Показывать таймер в action bar.
+  show-actionbar: true
+
+  password:
+    min-length: 6
+    max-length: 64
+    # Регулярное выражение; пустая строка — проверка отключена.
+    pattern: ''
+    # Запретить пароль, совпадающий с ником.
+    forbid-name: true
+    # Запретить простые пароли из списка ниже.
+    reject-weak: true
+    weak-list:
+      - '123456'
+      - '12345678'
+      - '1234567890'
+      - 'password'
+      - 'qwerty'
+      - 'qwerty123'
+      - '111111'
+      - 'abc123'
+      - 'iloveyou'
+      - 'admin'
+
+  # Ограничения игрока до авторизации.
+  freeze:
+    block-movement: true
+    block-camera: true
+    block-jump: true
+    block-sprint: true
+    block-interaction: true
+    block-chat: true
+    # Неуязвимость до авторизации. Применяется отменой событий урона и НЕ
+    # устанавливает флаг Invulnerable игроку — после входа ничего не "залипает".
+    invulnerable: true
+    no-push: true
+    blindness: false
+
+  # Наказание при истечении времени или попыток.
+  punishment:
+    # KICK или BAN
+    type: KICK
+    ban-duration: 300s
+
+  # Автовход после недавнего выхода.
+  session:
+    enabled: true
+    duration: 600s
+    # Жёсткий срок жизни сессии: по истечении игрок обязан войти заново,
+    # даже если запись сессии не была удалена вовремя.
+    # 0 — использовать значение duration.
+    timeout: 600s
+    require-same-ip: true
+
+  # Команды, разрешённые до авторизации (без слеша).
+  allowed-commands:
+    - register
+    - reg
+    - login
+    - l
+    - wauth
+    - wa
+    - 2fa
+
+confirmation:
+  enabled: true
+  timeout: 30s
+  require-for:
+    changepass: true
+    forcechangepass: true
+    forceresetpass: true
+
+# ============================================================
+#  Двухфакторная аутентификация (2FA) через мессенджеры.
+#  Подтверждение входа кнопкой в ЛС: Telegram, VK и Discord —
+#  все боты работают внутри плагина, внешних сервисов не нужно.
+# ============================================================
+twofa:
+  # Главный выключатель. Без него весь блок ниже не поднимается.
+  enabled: false
+  # Игрокам с правом wauth.2fa.required вход без привязки 2FA запрещён.
+  enforce-permission: true
+  # Сколько живёт код/веб-сессия привязки.
+  link-timeout: 600s
+  # Сколько ждём подтверждения входа из мессенджера.
+  confirm-timeout: 120s
+  # Сколько резервных кодов выдавать при привязке.
+  backup-codes-count: 8
+
+  # Встроенный HTTP: сайт настройки привязки 2FA.
+  http:
+    enabled: true
+    tunnel: false
+    # Поднять сайт прямо на порту игрового сервера (server.properties → server-port).
+    # Плагин различает HTTP- и Minecraft-соединения по первым байтам и разводит их сам —
+    # отдельный порт открывать не нужно. Если внедриться в сеть сервера не удалось,
+    # автоматически поднимется отдельный сервер на host/port ниже (в консоли будет предупреждение).
+    share-server-port: true
+    # Запасные host/port на случай, если share-server-port выключен или не сработал.
+    host: 127.0.0.1
+    port: 8654
+    # Публичный адрес сайта настройки (что уходит игроку ссылкой).
+    # При share-server-port укажите адрес и порт сервера, например http://play.example.ru:25565
+    public-url: 'http://127.0.0.1:25565'
+
+  telegram:
+    enabled: false
+    # Токен бота от @BotFather.
+    token: ''
+
+  vk:
+    enabled: false
+    # Токен сообщества (Long Poll API + сообщения).
+    token: ''
+    # Числовой ID сообщества.
+    group-id: 0
+
+  discord:
+    enabled: false
+    # Токен бота из Discord Developer Portal (Bot → Token).
+    # Боту нужен интент DIRECT MESSAGES; привилегированные интенты не требуются.
+    # Игрок должен иметь общий сервер с ботом, чтобы тот мог писать ему в ЛС.
+    token: ''
+
+messages:
+  player-ambiguous: '{prefix}&#FF6B6BНик %player% относится к нескольким аккаунтам. Укажите UUID вместо ника: %uuids%'
+  rate-limited: '{prefix}&#FF6B6BСлишком много попыток. Повторите через %time%.'
+  operation-failed: '{prefix}&#FF6B6BНе удалось выполнить действие. Повторите позже или обратитесь к администратору.'
+  prefix: '&#F0FFABW&#F4E993A&#FAC86FU&#FEB257T&#FF8C5EH &#5C5C5C» &r'
+  players-only: '{prefix}&#FF6B6BЭта команда доступна только игрокам.'
+  no-permission: '{prefix}&#FF6B6BУ вас нет прав на это действие.'
+  reload-success: '{prefix}&#8CE99AКонфигурация перезагружена.'
+
+  join-register:
+    - ' '
+    - '&#F0FFAB&lДобро пожаловать!'
+    - '&#D8D8D8Ваш аккаунт ещё не зарегистрирован.'
+    - '&#D8D8D8Введите: &#FFD479/register <пароль> <подтверждение>'
+    - '&#8C8C8Cу вас есть &#FFD479%time%&#8C8C8C на регистрацию.'
+    - ' '
+  join-login:
+    - ' '
+    - '&#F0FFAB&lС возвращением, &#FFD479%player%&#F0FFAB!'
+    - '&#D8D8D8Введите: &#FFD479/login <пароль>'
+    - '&#8C8C8Cу вас есть &#FFD479%time%&#8C8C8C на вход.'
+    - ' '
+  reminder-register: '{prefix}&#FFD479Зарегистрируйтесь: &#F0FFAB/register <пароль> <подтверждение> &#8C8C8C(%time%)'
+  reminder-login: '{prefix}&#FFD479Выполните вход: &#F0FFAB/login <пароль> &#8C8C8C(%time%)'
+  actionbar-register: '&#FFD479Регистрация &#5C5C5C| &#F0FFAB%time%'
+  actionbar-login: '&#FFD479Авторизация &#5C5C5C| &#F0FFAB%time%'
+
+  usage-register: '{prefix}&#FF6B6BИспользование: &#FFD479/register <пароль> <подтверждение пароля>'
+  usage-login: '{prefix}&#FF6B6BИспользование: &#FFD479/login <пароль>'
+  usage-changepass: '{prefix}&#FF6B6BИспользование: &#FFD479/changepass <текущий пароль> <новый пароль>'
+  usage-forcechangepass: '{prefix}&#FF6B6BИспользование: &#FFD479/forcechangepass <ник> <новый пароль>'
+  usage-forceresetpass: '{prefix}&#FF6B6BИспользование: &#FFD479/forceresetpass <ник>'
+
+  password-mismatch: '{prefix}&#FF6B6BПароли не совпадают. Попробуйте ещё раз.'
+  password-too-short: '{prefix}&#FF6B6BПароль слишком короткий: минимум &#FFD479%min%&#FF6B6B символов.'
+  password-too-long: '{prefix}&#FF6B6BПароль слишком длинный: максимум &#FFD479%max%&#FF6B6B символов.'
+  password-too-long-bytes: '{prefix}&#FF6B6BПароль слишком длинный: не более &#FFD479%max%&#FF6B6B байт (кириллица занимает 2 байта на символ).'
+  password-pattern: '{prefix}&#FF6B6BПароль не соответствует требованиям безопасности.'
+  password-is-name: '{prefix}&#FF6B6BПароль не может совпадать с вашим ником.'
+  password-too-weak: '{prefix}&#FF6B6BЭтот пароль слишком простой — придумайте надёжнее.'
+  password-same-as-old: '{prefix}&#FF6B6BНовый пароль совпадает с текущим.'
+
+  already-registered: '{prefix}&#FF6B6BВы уже зарегистрированы. Используйте &#FFD479/login <пароль>&#FF6B6B.'
+  not-registered: '{prefix}&#FF6B6BВы ещё не зарегистрированы. Используйте &#FFD479/register <пароль> <подтверждение>&#FF6B6B.'
+  already-authenticated: '{prefix}&#8CE99AВы уже авторизованы.'
+  account-locked: '{prefix}&#FF6B6BАккаунт заблокирован. Разблокируйте его через привязанный бот.'
+  bot-session-revoked: '{prefix}&#FFD479Настройки безопасности изменены. Войдите заново.'
+  not-authenticated: '{prefix}&#FF6B6BСначала авторизуйтесь.'
+  busy: '{prefix}&#FFD479Подождите, запрос обрабатывается…'
+
+  register-success:
+    - ' '
+    - '&#8CE99A&lРегистрация завершена!'
+    - '&#D8D8D8Ваш пароль надёжно зашифрован. Приятной игры!'
+    - ' '
+  login-success: '{prefix}&#8CE99AВы успешно авторизованы. Приятной игры!'
+  session-restored: '{prefix}&#8CE99AСессия восстановлена — повторный вход не требуется.'
+  wrong-password: '{prefix}&#FF6B6BНеверный пароль. &#8C8C8CОсталось попыток: &#FFD479%attempts%&#8C8C8C.'
+  wrong-current-password: '{prefix}&#FF6B6BТекущий пароль указан неверно.'
+  changepass-success: '{prefix}&#8CE99AПароль успешно изменён.'
+  chat-blocked: '{prefix}&#FF6B6BЧат недоступен до авторизации.'
+  command-blocked: '{prefix}&#FF6B6BЭта команда недоступна до авторизации.'
+  action-blocked: '{prefix}&#FF6B6BДействие недоступно до авторизации.'
+
+  player-not-found: '{prefix}&#FF6B6BИгрок &#FFD479%player%&#FF6B6B не найден в базе.'
+  force-changepass-success: '{prefix}&#8CE99AПароль игрока &#FFD479%player%&#8CE99A изменён.'
+  force-resetpass-success: '{prefix}&#8CE99AПароль и сессия игрока &#FFD479%player%&#8CE99A сброшены.'
+  force-changepass-notify: '{prefix}&#FFD479Ваш пароль был изменён администратором.'
+  force-resetpass-notify: '{prefix}&#FFD479Ваш аккаунт сброшен — пройдите регистрацию заново.'
+
+  confirm-prompt: '{prefix}&#FFD479Подтвердите действие: &#F0FFAB%action%'
+  confirm-button: '{prefix}&#5C5C5C[&#8CE99A&lНАЖМИТЕ ДЛЯ ПОДТВЕРЖДЕНИЯ&#5C5C5C] &#8C8C8C(%time%)'
+  confirm-hover: '&#8CE99AНажмите, чтобы подтвердить'
+  confirm-unknown: '{prefix}&#FF6B6BЗапрос не найден или уже истёк.'
+  confirm-expired: '{prefix}&#FF6B6BВремя подтверждения истекло.'
+  confirm-action-changepass: 'смена собственного пароля'
+  confirm-action-forcechangepass: 'смена пароля игрока %player%'
+  confirm-action-forceresetpass: 'сброс пароля игрока %player%'
+
+  # --- Двухфакторная аутентификация ---
+  usage-twofa: '{prefix}&#FF6B6BИспользование: &#FFD479/2fa <link|status|enable|disable|unlink|code>'
+  usage-twofa-code: '{prefix}&#FF6B6BИспользование: &#FFD479/2fa code <резервный код>'
+  twofa-disabled: '{prefix}&#FF6B6BДвухфакторная аутентификация отключена на сервере.'
+  twofa-confirm-sent:
+    - ' '
+    - '&#F0FFAB&lПодтвердите вход'
+    - '&#D8D8D8Мы отправили запрос в ваш мессенджер. Нажмите &#8CE99AПодтвердить&#D8D8D8.'
+    - '&#8C8C8Cу вас есть &#FFD479%time%&#8C8C8C. Нет доступа? &#FFD479/2fa code <резервный код>'
+    - ' '
+  twofa-link-required:
+    - ' '
+    - '&#FFD479&lТребуется привязка 2FA'
+    - '&#D8D8D8Для входа на сервер нужно привязать мессенджер.'
+    - '&#D8D8D8Введите &#FFD479/2fa link&#D8D8D8 и следуйте инструкции.'
+    - '&#8C8C8Cосталось времени: &#FFD479%time%'
+    - ' '
+  twofa-link-required-now: '{prefix}&#FFD479Сначала привяжите аккаунт: &#F0FFAB/2fa link'
+  twofa-awaiting-confirm: '{prefix}&#FFD479Ожидается подтверждение входа в мессенджере. Резервный код: &#F0FFAB/2fa code <код>'
+  twofa-link-code: '{prefix}&#F0FFABВаш код привязки: &#FFD479%code%'
+  twofa-link-url: '{prefix}&#5C5C5C[&#8CE99A&lОТКРЫТЬ СТРАНИЦУ НАСТРОЙКИ&#5C5C5C] &#8C8C8C(нажмите)'
+  twofa-link-url-hover: '&#8CE99AОткрыть сайт: %url%'
+  twofa-confirm-link-prompt:
+    - ' '
+    - '&#8CE99A&lПодтвердите привязку'
+    - '&#D8D8D8Код принят из &#FFD479%provider%&#D8D8D8 (&#FFD479%messenger%&#D8D8D8).'
+    - '&#D8D8D8Если это НЕ вы отправляли код — не подтверждайте!'
+    - '&#8C8C8CНажмите кнопку ниже 3 раза, чтобы завершить привязку.'
+    - ' '
+  twofa-confirm-link-button: '{prefix}&#5C5C5C[&#8CE99A&lПОДТВЕРДИТЬ ПРИВЯЗКУ&#5C5C5C] &#8C8C8C(нажать 3 раза)'
+  twofa-confirm-link-hover: '&#8CE99AНажмите для подтверждения (нужно 3 нажатия)'
+  twofa-confirm-link-progress: '{prefix}&#D8D8D8Подтверждение… осталось нажатий: &#FFD479%left%'
+  twofa-confirm-link-none: '{prefix}&#FF6B6BНет привязки, ожидающей подтверждения. Сначала отправьте код боту.'
+  twofa-linked: '{prefix}&#8CE99AАккаунт привязан к &#FFD479%provider%&#8CE99A! Резервные коды — на сайте.'
+  twofa-no-pending: '{prefix}&#FF6B6BСейчас нет ожидающего подтверждения входа.'
+  twofa-backup-used: '{prefix}&#8CE99AВход по резервному коду выполнен. &#8C8C8CОсталось кодов: &#FFD479%left%&#8C8C8C.'
+  twofa-backup-invalid: '{prefix}&#FF6B6BНеверный резервный код.'
+  twofa-status-unlinked: '{prefix}&#FFD479Мессенджер не привязан. Введите &#F0FFAB/2fa link&#FFD479, чтобы включить 2FA.'
+  twofa-status-linked: '{prefix}&#8CE99AМессенджер: &#FFD479%provider%&#8CE99A · статус: &#FFD479%state%&#8CE99A · резервных кодов: &#FFD479%left%'
+  twofa-enabled: '{prefix}&#8CE99AДвухфакторная аутентификация включена.'
+  twofa-disabled-ok: '{prefix}&#FFD479Двухфакторная аутентификация отключена.'
+  twofa-unlinked: '{prefix}&#FFD479Привязка мессенджера удалена, 2FA отключён.'
+  twofa-required-cannot-disable: '{prefix}&#FF6B6BНа вашем аккаунте 2FA обязателен — отключить нельзя.'
+  actionbar-twofa: '&#FFD479Подтвердите вход &#5C5C5C| &#F0FFAB%time%'
+  actionbar-twofa-link: '&#FFD479Привяжите 2FA &#5C5C5C| &#F0FFAB%time%'
+  reminder-twofa: '{prefix}&#FFD479Подтвердите вход в мессенджере &#8C8C8C(%time%)&#FFD479 или &#F0FFAB/2fa code <код>'
+  reminder-twofa-link: '{prefix}&#FFD479Привяжите аккаунт: &#F0FFAB/2fa link &#8C8C8C(%time%)'
+
+  kick-timeout:
+    - '&#FF6B6B&lВРЕМЯ ИСТЕКЛО'
+    - ' '
+    - '&#D8D8D8Вы не успели авторизоваться за &#FFD479%time%&#D8D8D8.'
+  kick-attempts:
+    - '&#FF6B6B&lПОПЫТКИ ИСЧЕРПАНЫ'
+    - ' '
+    - '&#D8D8D8Слишком много неверных попыток ввода пароля.'
+  kick-twofa:
+    - '&#FF6B6B&lВХОД НЕ ПОДТВЕРЖДЁН'
+    - ' '
+    - '&#D8D8D8Вы не подтвердили вход в мессенджере за &#FFD479%time%&#D8D8D8.'
+  kick-twofa-link:
+    - '&#FF6B6B&lТРЕБУЕТСЯ ПРИВЯЗКА 2FA'
+    - ' '
+    - '&#D8D8D8Вы не привязали мессенджер за отведённое время.'
+  ban-timeout:
+    - '&#FF6B6B&lВЫ ЗАБЛОКИРОВАНЫ'
+    - ' '
+    - '&#D8D8D8Причина: не пройдена авторизация.'
+    - '&#D8D8D8Разблокировка через: &#FFD479%duration%&#D8D8D8.'
+  ban-attempts:
+    - '&#FF6B6B&lВЫ ЗАБЛОКИРОВАНЫ'
+    - ' '
+    - '&#D8D8D8Причина: превышено число попыток ввода пароля.'
+    - '&#D8D8D8Разблокировка через: &#FFD479%duration%&#D8D8D8.'
+  ban-twofa:
+    - '&#FF6B6B&lВЫ ЗАБЛОКИРОВАНЫ'
+    - ' '
+    - '&#D8D8D8Причина: вход не подтверждён вторым фактором.'
+    - '&#D8D8D8Разблокировка через: &#FFD479%duration%&#D8D8D8.'
+  ban-twofa-link:
+    - '&#FF6B6B&lВЫ ЗАБЛОКИРОВАНЫ'
+    - ' '
+    - '&#D8D8D8Причина: не привязан обязательный второй фактор.'
+    - '&#D8D8D8Разблокировка через: &#FFD479%duration%&#D8D8D8.'
+  ban-reason: 'WAUTH: не пройдена авторизация'

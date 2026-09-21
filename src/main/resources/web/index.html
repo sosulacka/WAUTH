@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#f5f3ed">
+<title>WAUTH | Защита аккаунта</title><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script>
+</head>
+<body>
+<div class="page">
+<header class="topbar">
+<a class="brand" href="/" aria-label="WAUTH: главная"><svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 8h7l4 17 4-12h5l3 12 5-17h5L30 33h-6l-3-11-4 11h-6Z"/></svg><span>WAUTH<span class="brand-dot">.</span></span></a>
+<span class="topbar-caption">Защита вашего игрового аккаунта</span><span class="edition">ACCOUNT / 02</span>
+</header>
+<main class="workspace">
+<aside class="intro">
+<div class="eyebrow"><span class="tiny-square"></span> Второй фактор</div>
+<h1>Ваш аккаунт.<br>Только <em>ваш.</em></h1>
+<p class="intro-copy">Подключите подтверждение входа в мессенджере. Тогда одного пароля будет недостаточно, чтобы зайти в ваш аккаунт.</p>
+<ol class="steps" aria-label="Этапы подключения">
+<li id="step-1" aria-current="step"><span class="step-number">01</span><div><strong>Отправьте код</strong><p>В личные сообщения боту</p></div><span class="step-check" aria-hidden="true">↗</span></li>
+<li id="step-2"><span class="step-number">02</span><div><strong>Подтвердите в игре</strong><p>Нажмите кнопку три раза</p></div><span class="step-check" aria-hidden="true">↗</span></li>
+<li id="step-3"><span class="step-number">03</span><div><strong>Сохраните резервные коды</strong><p>На случай потери доступа</p></div><span class="step-check" aria-hidden="true">↗</span></li>
+</ol>
+<div class="security-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v6c0 4-5 8-8 9-3-1-8-5-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg><p>Подтверждайте только свои входы.<br>Никому не передавайте резервные коды.</p></div>
+</aside>
+<div class="panel-column">
+<div class="panel-topline"><span>НАСТРОЙКА ДОСТУПА</span><span class="panel-indicator" id="panel-indicator">Проверка сессии</span></div>
+<section class="panel" id="view-loading" aria-labelledby="loading-title" aria-busy="true">
+<div class="loading-art" aria-hidden="true"><span></span><span></span><span></span></div><p class="eyebrow">Один момент</p><h2 id="loading-title">Проверяем вашу ссылку</h2><p class="muted">Загружаем данные для подключения защиты.</p>
+</section>
+<section class="panel" id="view-link" aria-labelledby="link-title" hidden>
+<div class="account-row"><span class="avatar" aria-hidden="true">W</span><div><span class="small-label">ИГРОВОЙ АККАУНТ</span><strong id="player-name">Игрок</strong></div><span class="account-tag">2FA</span></div>
+<div class="panel-heading"><p class="eyebrow" id="link-eyebrow">Шаг 01 / 03</p><h2 id="link-title" tabindex="-1">Начнём с кода</h2><p class="muted" id="link-description">Скопируйте код и отправьте его нашему боту в Telegram.</p></div>
+<div class="code-area" id="code-area">
+<div class="code-meta"><span>ВАШ КОД ПРИВЯЗКИ</span><span class="timer"><span aria-hidden="true">◷</span> <span id="code-timer">--:--</span></span></div>
+<div class="code-line"><span id="link-code" class="code-value">········</span><button class="copy-icon" id="copy-code" type="button" aria-label="Скопировать код привязки"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg></button></div>
+<p id="code-copy" class="code-help">Одноразовый код. Отправьте его в личные сообщения.</p>
+</div>
+<a class="primary-button" id="open-bot" href="https://t.me/wsmptwofa_bot" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-7-4 17-6-5-3 3 1-6 8-6-10 5Z"/></svg>Открыть Telegram<span aria-hidden="true">↗</span></a>
+<p class="bot-handle" id="bot-handle">Наш бот: <strong>@wsmptwofa_bot</strong></p>
+<div class="confirm-hint" id="confirm-hint" hidden><span class="confirm-count" aria-hidden="true">3×</span><div><strong>Вернитесь на сервер</strong><p>Нажмите "Подтвердить привязку" в игровом чате три раза. Проверьте, что указан ваш мессенджер.</p></div></div>
+<div class="connection" role="status"><span class="status-dot" id="status-dot" aria-hidden="true"></span><p id="connection-status">Ждём отправку кода. Обновлять страницу не нужно.</p></div>
+</section>
+<section class="panel" id="view-done" aria-labelledby="done-title" hidden>
+<div class="result-symbol success" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m7 16 6 6L26 9"/></svg></div>
+<p class="eyebrow">Шаг 03 / 03</p><h2 id="done-title" tabindex="-1">Аккаунт под защитой.</h2>
+<p class="muted"><strong id="done-provider">Мессенджер</strong> подключён. Теперь каждый вход нужно подтверждать в личных сообщениях.</p>
+<div id="backup-wrap"><div class="backup-heading"><h3>Ваш запасной ключ</h3><span class="badge">Показаны один раз</span></div>
+<p class="muted small">Сохраните коды в менеджере паролей. Каждый из них позволяет войти один раз, если мессенджер недоступен.</p>
+<div class="backup-grid" id="backup-grid" aria-label="Резервные коды"></div><button class="primary-button" id="copy-backup" type="button">Скопировать все коды<span aria-hidden="true">↗</span></button>
+<p class="backup-command">В игре: <code>/2fa code &lt;код&gt;</code></p><label class="saved-check"><input type="checkbox" id="saved-codes"><span>Я сохранил резервные коды в надёжном месте</span></label></div>
+<p class="inline-note" id="backup-unavailable" hidden>Коды уже были выданы. Если вы их не сохранили, обратитесь к администратору сервера.</p><div class="completion" id="completion" hidden>Всё готово. Можно вернуться в игру и закрыть эту вкладку.</div>
+</section>
+<section class="panel" id="view-error" aria-labelledby="error-title" hidden>
+<div class="result-symbol warning" aria-hidden="true">!</div><p class="eyebrow">Нужно ваше действие</p><h2 id="error-title" tabindex="-1">Нужна новая ссылка</h2>
+<p class="muted" id="error-description">Откройте игру и введите команду. Сервер выдаст новую ссылку для настройки.</p>
+<div class="command-box"><code>/2fa link</code><span>В игровом чате</span></div><button class="primary-button" id="retry" type="button" hidden>Попробовать ещё раз<span aria-hidden="true">↗</span></button><p class="error-footnote">Подключение защиты продолжится после проверки ссылки.</p>
+</section>
+<p class="panel-caption">Ссылка предназначена только для вашего аккаунта.</p>
+</div>
+</main>
+<footer class="footer"><span>WAUTH <span class="footer-slash">/</span> Создано для спокойной игры.</span><span>AxelTeam CYN & T1REI</span></footer>
+</div><div class="toast" id="toast" role="status" hidden></div>
+<noscript><div class="noscript">Для настройки включите JavaScript в браузере и откройте ссылку из команды /2fa link.</div></noscript>
+</body>
+</html>
