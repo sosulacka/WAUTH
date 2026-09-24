@@ -109,6 +109,7 @@ public final class AuthConfig {
     private String httpPublicUrl;
     private boolean telegramEnabled;
     private String telegramToken;
+    private String telegramUsername;
     private boolean vkEnabled;
     private String vkToken;
     private long vkGroupId;
@@ -193,6 +194,7 @@ public final class AuthConfig {
         httpPublicUrl = stripTrailingSlash(file.string("twofa.http.public-url", "http://127.0.0.1:8654"));
         telegramEnabled = file.bool("twofa.telegram.enabled", false);
         telegramToken = file.string("twofa.telegram.token", "");
+        telegramUsername = file.string("twofa.telegram.username", "").trim().replaceFirst("^@", "");
         vkEnabled = file.bool("twofa.vk.enabled", false);
         vkToken = file.string("twofa.vk.token", "");
         vkGroupId = file.integer("twofa.vk.group-id", 0);
@@ -303,10 +305,10 @@ public final class AuthConfig {
     public String httpPublicUrl() { return httpPublicUrl; }
     public boolean telegramEnabled() { return telegramEnabled; }
     public String telegramToken() { return telegramToken; }
+    public String telegramUsername() { return telegramUsername; }
     public boolean vkEnabled() { return vkEnabled; }
     public String vkToken() { return vkToken; }
     public long vkGroupId() { return vkGroupId; }
     public boolean discordEnabled() { return discordEnabled; }
     public String discordToken() { return discordToken; }
 }
-

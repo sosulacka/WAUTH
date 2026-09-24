@@ -70,6 +70,7 @@ h2 { font: 700 29px/1.15 var(--display); letter-spacing: -.9px; margin: 11px 0 1
 .primary-button > span:last-child { margin-left: auto; font-size: 20px; line-height: 15px; }
 .bot-handle { text-align: center; font-size: 9px; color: var(--muted); margin-top: 12px; }
 .bot-handle strong { font-weight: 400; color: #565c4a; }
+#open-bot[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .connection { display: flex; align-items: start; gap: 9px; margin-top: 25px; padding-top: 19px; border-top: 1px solid var(--line); }
 .connection p { font-size: 10px; line-height: 1.8; color: var(--muted); }
 .status-dot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: #7b8764; margin-top: 6px; box-shadow: 0 0 0 3px #7b876415; }

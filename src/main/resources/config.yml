@@ -145,6 +145,8 @@ twofa:
     public-url: 'http://127.0.0.1:25565'
 
   telegram:
+    # Bot username without @; blank shows a placeholder.
+    username: ''
     enabled: false
     # Токен бота от @BotFather.
     token: ''
@@ -327,3 +329,4 @@ messages:
     - '&#D8D8D8Причина: не привязан обязательный второй фактор.'
     - '&#D8D8D8Разблокировка через: &#FFD479%duration%&#D8D8D8.'
   ban-reason: 'WAUTH: не пройдена авторизация'
+

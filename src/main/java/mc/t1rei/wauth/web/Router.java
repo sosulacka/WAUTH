@@ -52,9 +52,13 @@ public final class Router {
             "Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
     private final TwoFactorManager manager;
+    private final String telegramUsername;
 
-    public Router(TwoFactorManager manager) {
+    public Router(TwoFactorManager manager) { this(manager, ""); }
+    public Router(TwoFactorManager manager, String telegramUsername) {
         this.manager = manager;
+        String username = telegramUsername == null ? "" : telegramUsername.trim().replaceFirst("^@", "");
+        this.telegramUsername = username.matches("[A-Za-z][A-Za-z0-9_]{4,31}") ? username : "";
     }
 
     public Response route(String method, String path, String rawQuery, String authHeader, byte[] body) {
@@ -122,7 +126,18 @@ public final class Router {
             if (in == null) {
                 return Response.json(404, error("not found"));
             }
-            return new Response(200, contentType(clean), in.readAllBytes());
+            byte[] bytes = in.readAllBytes();
+            if (clean.equals("/index.html")) {
+                String html = new String(bytes, StandardCharsets.UTF_8);
+                if (telegramUsername.isEmpty()) {
+                    html = html.replace("id=\"open-bot\" href=\"#\"", "id=\"open-bot\" aria-disabled=\"true\" tabindex=\"-1\"");
+                } else {
+                    html = html.replace("id=\"open-bot\" href=\"#\"", "id=\"open-bot\" href=\"https://t.me/" + telegramUsername + "\"")
+                            .replace("Бот не настроен", "@" + telegramUsername);
+                }
+                bytes = html.getBytes(StandardCharsets.UTF_8);
+            }
+            return new Response(200, contentType(clean), bytes);
         } catch (Exception exception) {
             return Response.json(500, error("read error"));
         }
@@ -167,4 +182,3 @@ public final class Router {
         return "application/octet-stream";
     }
 }
-

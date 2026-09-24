@@ -168,7 +168,7 @@ public final class WAuth extends JavaPlugin {
         authManager.attachTwoFactor(twoFactorManager);
 
         if (config.httpTunnel()) {
-            Router router = new Router(twoFactorManager);
+            Router router = new Router(twoFactorManager, config.telegramUsername());
             httpService = new HttpService(getLogger(), router, "127.0.0.1", config.httpPort());
             try {
                 httpService.start();
@@ -179,7 +179,7 @@ public final class WAuth extends JavaPlugin {
                 getLogger().severe("Не удалось запустить HTTP/туннель 2FA: " + exception);
             }
         } else if (config.httpEnabled()) {
-            Router router = new Router(twoFactorManager);
+            Router router = new Router(twoFactorManager, config.telegramUsername());
             getServer().getScheduler().runTask(this, () -> startHttp(router));
         }
 
@@ -269,4 +269,3 @@ public final class WAuth extends JavaPlugin {
         return authManager;
     }
 }
-

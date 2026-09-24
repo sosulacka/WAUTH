@@ -42,7 +42,14 @@ public final class TunnelService {
 
     private static final Pattern URL_PATTERN =
             Pattern.compile("https://[a-z0-9-]+\\.trycloudflare\\.com");
-    private static final String RESOURCE = "bin/cloudflared-linux-amd64";
+    static String binaryResource(String os, String arch) {
+        if (!arch.equalsIgnoreCase("amd64") && !arch.equalsIgnoreCase("x86_64"))
+            throw new IllegalArgumentException("Unsupported cloudflared architecture: " + arch);
+        String name = os.toLowerCase(java.util.Locale.ROOT);
+        if (name.startsWith("windows")) return "bin/cloudflared-windows-amd64.exe";
+        if (name.contains("linux")) return "bin/cloudflared-linux-amd64";
+        throw new IllegalArgumentException("Unsupported cloudflared OS: " + os);
+    }
 
     private final Logger logger;
     private final int localPort;
@@ -61,11 +68,6 @@ public final class TunnelService {
     }
 
     public void start() {
-        String os = System.getProperty("os.name", "").toLowerCase();
-        if (os.contains("win")) {
-            logger.warning("2FA tunnel: вшит только Linux-бинарь cloudflared — на Windows туннель не поднять.");
-            return;
-        }
         try {
             Path binary = extractBinary();
             ProcessBuilder pb = new ProcessBuilder(
@@ -135,16 +137,17 @@ public final class TunnelService {
     }
 
     private Path extractBinary() throws IOException {
-        Path dir = dataFolder.resolve("bin");
+        String resource = binaryResource(System.getProperty("os.name", ""), System.getProperty("os.arch", ""));
+        Path dir = dataFolder.resolve("bin").toAbsolutePath();
         Files.createDirectories(dir);
-        Path target = dir.resolve("cloudflared");
-        try (InputStream in = TunnelService.class.getClassLoader().getResourceAsStream(RESOURCE)) {
+        Path target = dir.resolve(resource.endsWith(".exe") ? "cloudflared.exe" : "cloudflared");
+        try (InputStream in = TunnelService.class.getClassLoader().getResourceAsStream(resource)) {
             if (in == null) {
-                throw new IOException("бинарь " + RESOURCE + " не найден в jar");
+                throw new IOException("бинарь " + resource + " не найден в jar");
             }
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
         }
-        try {
+        if (!resource.endsWith(".exe")) try {
             Set<PosixFilePermission> perms = EnumSet.of(
                     PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
                     PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_READ,
